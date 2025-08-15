@@ -29,14 +29,14 @@ RUN curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest
 
 ## 2 . Modification Jenkinsfile :
 
-**Définir des variables d’environnement target_file et report-nuclei**
-**Installer les package necessaires au lancement du server + lancer le serveur node.js car Nuclei effectue une analyse dynamique nécessitant que le serveur tourne**
-**Lancer le scan nuclei**
-- Scan de l’URL du serveur cible avec les templates des vulnérabilités et les sévérités
-- Sauvegarde du résultat dans le fichier `report-nuclei.txt`
-- Pipeline qui continue même si Nuclei détecte des vulnérabilités pour générer le rapport et l’afficher
-- Décider si le build échoue en fonction des vulnérabilités trouvées
-
+- Définir des variables d’environnement `target_file` et `report-nuclei`
+- Installer les packages nécessaires au lancement du serveur
+- Lancer le serveur Node.js (car Nuclei effectue une analyse dynamique nécessitant que le serveur tourne)
+- Lancer le scan Nuclei
+  - Scan de l’URL du serveur cible avec les templates des vulnérabilités et les sévérités
+  - Sauvegarde du résultat dans le fichier `report-nuclei.txt`
+  - Pipeline qui continue même si Nuclei détecte des vulnérabilités pour générer le rapport et l’afficher
+  - Décider si le build échoue en fonction des vulnérabilités trouvées
 
 
     ```groovy
