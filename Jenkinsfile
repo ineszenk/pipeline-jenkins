@@ -1,55 +1,68 @@
 pipeline {
     agent any
+
     environment {
-        SEMGREP_CONFIG = "p/default"  // Configuration Semgrep (peut être modifiée selon les besoins)
+        TARGET_FILE = 'targets.txt'
+        REPORT_FILE = 'report-nuclei.txt'
     }
+
     stages {
-        stage('Cloner le dépôt') {
+        stage('Clone repo') {
             steps {
-                git branch: 'main', url: 'https://github.com/korgrunt/vuln-server' // Remplace par l'URL du dépôt
+                git branch: 'main', url: 'https://github.com/ineszenk/pipeline-jenkins'
             }
         }
 
-        stage('Install and launch Semgrep') {
+        stage('Install npm package and launch Node.js') {
             steps {
                 sh '''
-                python3 -m venv venv
-                . venv/bin/activate
-                pip install semgrep
-                semgrep --help # pour vérifier l’installation
-                semgrep scan . > semgrep-report.txt
+                npm install
+                nohup node server.js &
+                sleep 5
                 '''
             }
         }
-        
-        stage('print Semgrep') {
+
+        stage('Launch Nuclei scan') {
+            steps {
+                sh '''
+                # Prepare target file
+                echo http://host.docker.internal:3000 > $TARGET_FILE
+
+                # Launch scan
+                nuclei -l $TARGET_FILE \
+                       -t /var/jenkins_home/nuclei-templates \
+                       -severity high,medium,low \
+                       -o $REPORT_FILE || true
+                '''
+            }
+        }
+
+        stage('Print Nuclei report') {
             steps {
                 sh '''
                 echo "-------*****-------*****-------*****-------*****"
-                cat ./semgrep-report.txt
+                cat $REPORT_FILE
                 echo "-------*****-------*****-------*****-------*****"
                 '''
             }
         }
-        
-        stage('Check for Code Findings') {
+
+        stage('Check for Vulnerability Findings') {
             steps {
                 script {
-                    def findingsFile = './semgrep-report.txt' // Remplace avec le chemin vers le fichier à vérifier
-                    def findingsCheck = sh(script: "grep -q 'Code Findings' ${findingsFile}", returnStatus: true)
-                    
-                    if (findingsCheck == 0) {
-                        error("security issue")
+                    def reportContent = readFile(env.REPORT_FILE)
+                    if (reportContent.contains("high") || reportContent.contains("medium") || reportContent.contains("low")) {
+                        error("Vulnerabilities found by Nuclei! Build failed.")
                     }
                 }
             }
         }
-        
     }
+
     post {
         always {
-            cleanWs()  // Nettoyer le workspace après l'exécution
+            cleanWs()
         }
     }
 }
-          
