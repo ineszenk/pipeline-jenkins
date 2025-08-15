@@ -13,7 +13,3 @@ Lance ensuite l'outil de test dynamique (DAST) **Nuclei** sur le serveur pour 
 Si des vulnérabilités de niveau **high**, **medium** ou **low** sont trouvées, le build doit échouer avec une erreur.
 
 Si aucune vulnérabilité n'est détectée, le build doit se terminer avec succès.
-
-**Forme des rendus**
-
-Sous forme de repository Github (en public) et envoyer un mail a contact@hash24security.com avec un texte explicatif et le lien du repo.
